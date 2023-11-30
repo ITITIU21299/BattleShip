@@ -10,11 +10,11 @@ import javax.swing.JPanel;
 import Inputs.KeyboardInputs;
 import Inputs.MouseInputs;
 
-
 public class GamePanel extends JPanel {
     private MouseInputs mouseInputs;
     private BufferedImage img;
-    public GamePanel(){
+
+    public GamePanel() {
 
         importImg();
 
@@ -34,8 +34,9 @@ public class GamePanel extends JPanel {
         }
     }
 
-    public void paintComponent(Graphics g){
+    public void paintComponent(Graphics g) {
         super.paintComponent(g);
         g.drawImage(img, 0, 0, null);
+        // g.drawRect(100, 100, 50, 200);
     }
 }
