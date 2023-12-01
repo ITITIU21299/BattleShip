@@ -2,9 +2,11 @@ package Main;
 
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
+import java.io.FileInputStream;
 import java.io.InputStream;
 
 import javax.imageio.ImageIO;
+import javax.imageio.stream.FileImageInputStream;
 import javax.swing.JPanel;
 
 import Inputs.KeyboardInputs;
@@ -26,9 +28,9 @@ public class GamePanel extends JPanel {
     }
 
     private void importImg() {
-        InputStream is = getClass().getResourceAsStream("/MainMenu.jpg");
+        //InputStream is = getClass().getResourceAsStream("Resources/MainMenu.jpg");
         try {
-            img = ImageIO.read(is);
+            img = ImageIO.read(new FileInputStream("src/Resources/MainMenu.jpg"));
         } catch (Exception e) {
             e.printStackTrace();
         }

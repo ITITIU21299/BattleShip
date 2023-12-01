@@ -21,10 +21,10 @@ public class KeyboardInputs implements KeyListener {
             case KeyEvent.VK_ESCAPE:
                 System.out.println("You pause the game");
                 break;
-            case KeyEvent.VK_A: 
+            case KeyEvent.VK_A:
                 System.out.println("A key");
                 break;
         }
     }
-    
+
 }
