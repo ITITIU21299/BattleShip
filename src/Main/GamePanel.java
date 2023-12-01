@@ -1,6 +1,7 @@
 package Main;
 
 import java.awt.Graphics;
+import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -38,7 +39,8 @@ public class GamePanel extends JPanel {
 
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
-        g.drawImage(img, 0, 0, null);
+        Image scaledImage = img.getScaledInstance(getWidth(),getHeight(),Image.SCALE_SMOOTH);
+        g.drawImage(scaledImage, 0, 0, null);
         // g.drawRect(100, 100, 50, 200);
     }
 }
