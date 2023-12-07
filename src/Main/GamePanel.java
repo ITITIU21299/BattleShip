@@ -41,4 +41,7 @@ public class GamePanel extends JPanel {
         g.drawImage(img, 0, 0, null);
         // g.drawRect(100, 100, 50, 200);
     }
-}
+
+    }
+
+
