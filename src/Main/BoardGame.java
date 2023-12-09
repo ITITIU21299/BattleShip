@@ -1,5 +1,7 @@
 package Main;
 
+import Inputs.MyKeyListener;
+
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -8,216 +10,195 @@ import java.util.Random;
 import java.util.Set;
 import javax.swing.*;
 
-//1 Ships of player
-//2 Ships of computer
-//0 mean empty
+public class BoardGame extends JPanel  {
 
-public class BoardGame extends JPanel implements KeyListener {
-    private int number_horizontal = 10;
-    private int number_vertical = 10;
-    private int gridsize = 64;
-    private int startX = 32;
-    private int currentX = 0;  // Track current position X
-    private int currentY = 0;  // Track current position Y
-    public static String[][] Player_Positions;
-    public static String[][] Computer_Positions;
-    private Set<String> redLines = new HashSet<>();
-    private static final int MAX_ENTER_COUNT = 5;
-    private int enterCount = 0;
+    public static final int GRID_SIZE = 64;
+    public static final int NUMBER_HORIZONTAL = 10;
+    public static final int NUMBER_VERTICAL = 10;
+    public static final int START_X = 32;
+    public static final int MAX_ENTER_COUNT = 5;
+
+    public static int currentX = 0;
+    public static int currentY = 0;
+    private static int enterCount = 0;
+    private static Set<String> redLines = new HashSet<>();
+
+    private Player player;
+    private Computer computer;
+    private boolean fillRectEnabled = true;
+
+    Battle battle;
 
     public BoardGame() {
-        Player_Positions = new String[10][10];
-        Computer_Positions = new String[10][10];
-        for (int i = 0; i < 10; i++) {
-            for (int j = 0; j < 10; j++) {
-                Player_Positions[i][j] = " 0 ";
-                Computer_Positions[i][j] = " 0 ";
-            }
-        }
-
-        addKeyListener(this);
+        player = new Player();
+        computer = new Computer();
+        addKeyListener(new MyKeyListener(this));
         setFocusable(true);
         setFocusTraversalKeysEnabled(false);
         initializeComputerCrosses();
+        battle=new Battle(this);
     }
 
     @Override
-    protected void paintComponent(Graphics g) {
+    public  void paintComponent(Graphics g) {
         super.paintComponent(g);
-        g.setColor(Color.cyan);
+        drawGameInfo(g);
+        drawGrid(g);
+        player.drawShips(g);
+        drawSelectedGrid(g);
+        drawRedLines(g);
 
+        if (Player.ships < 5 && fillRectEnabled) {
+            g.setColor(Color.darkGray);
+            g.fillRect(START_X + currentX * GRID_SIZE, 64 * 2 + currentY * GRID_SIZE, GRID_SIZE, GRID_SIZE);
+        } else if (fillRectEnabled) {
+            // Clear the fill rect if it was previously filled
+            g.clearRect(START_X + currentX * GRID_SIZE, 64 * 2 + currentY * GRID_SIZE, GRID_SIZE, GRID_SIZE);
+            fillRectEnabled = false; // Update the flag
+        }
+
+        g.setColor(Color.black);
+        for (int i = 0; i < Computer.positions.length; i++) {
+            for (int j = 0; j < Computer.positions[i].length; j++) {
+                if (Computer.positions[i][j]==1) {
+                    int x = 64 * j + 32 + 832;
+                    int y = 64 * i + 128;
+                    g.drawLine(x, y, x + GRID_SIZE, y + GRID_SIZE);
+                    g.drawLine(x, y + GRID_SIZE, x + GRID_SIZE, y);
+                }
+            }
+        }
+        drawBattle_Effect(g);
+        draw_Computer(g);
+    }
+
+    private void drawGameInfo(Graphics g) {
+        g.setColor(Color.blue);
+        g.fillRect(0, 0, getWidth(), getHeight());
+        g.setColor(Color.YELLOW);
+        g.drawString("Player Ships: " + player.getShips(), 100, 64);
+        g.drawString("Computer Ships: " + computer.getShips(), 1100, 64);
+        g.setColor(Color.yellow);
         drawTableTitle(g, "Your  Table", 100, 64 * 2);
         drawTableTitle(g, "Opponent Table", 1100, 64 * 2);
-        drawGraphics(g,"Match",672,100);
 
-        g.setColor(Color.blue);
-        g.fillRect(32, 64 * 2, 640, 640);
-        g.fillRect(864, 64 * 2, 640, 640);
 
-        drawGrid(g);
+    }
 
-        // Draw the selected grid darker
+    private void drawSelectedGrid(Graphics g) {
         g.setColor(Color.darkGray);
-        g.fillRect(startX + currentX * gridsize, 64 * 2 + currentY * gridsize, gridsize, gridsize);
+        g.fillRect(START_X + currentX * GRID_SIZE, 64 * 2 + currentY * GRID_SIZE, GRID_SIZE, GRID_SIZE);
+    }
 
-
-
+    private void drawRedLines(Graphics g) {
         g.setColor(Color.red);
         for (String position : redLines) {
             String[] parts = position.split(",");
             int x = Integer.parseInt(parts[0]);
             int y = Integer.parseInt(parts[1]);
-            g.drawLine(x, y, x + gridsize, y + gridsize);
-            g.drawLine(x, y + gridsize, x + gridsize, y);
+            g.drawLine(x, y, x + GRID_SIZE, y + GRID_SIZE);
+            g.drawLine(x, y + GRID_SIZE, x + GRID_SIZE, y);
         }
-
-        g.setColor(Color.black);
-        for (int i = 0; i < Computer_Positions.length; i++) {
-            for (int j = 0; j < Computer_Positions[i].length; j++) {
-                if (" 1 ".equals(Computer_Positions[i][j])) {
-                    int x = 64 * j + 32 + 832;
-                    int y = 64 * i + 128;
-                    g.drawLine(x, y, x + gridsize, y + gridsize);
-                    g.drawLine(x, y + gridsize, x + gridsize, y);
-                }
-            }
-        }
-
-
     }
 
-    void drawTableTitle(Graphics g, String title, int x, int y) {
+    private void drawTableTitle(Graphics g, String title, int x, int y) {
         g.setFont(new Font("Arial", Font.BOLD, 40));
         g.drawString(title, x, y - 10);
     }
-    void drawGraphics (Graphics g, String title, int x, int y) {
-        g.setFont(new Font("Arial", Font.BOLD, 40));
-        g.drawString(title, x, y - 10);
-    }
-
-    private void initializeComputerCrosses() {
-        Random random = new Random();
-        for (int i = 0; i < 5; i++) {
-            int row = random.nextInt(9);
-            int column = random.nextInt(9);
-            if (" 0 ".equals(Computer_Positions[row][column])) {
-                Computer_Positions[row][column] = " 1 ";
-            }
-        }
-    }
-
     private void drawGrid(Graphics g) {
         g.setColor(Color.cyan);
 
-        for (int i = 0; i < number_horizontal; i++) {
-            int x = startX + i * gridsize;
-            g.drawLine(x, 64 * 2, x, getHeight() - 64);
+        for (int i = 0; i <= NUMBER_HORIZONTAL; i++) {
+            int x = START_X + i * GRID_SIZE;
+            g.drawLine(x, 64 * 2, x, 768);
         }
 
-        for (int i = 0; i < number_horizontal; i++) {
-            int x = 864 + i * gridsize;
-            g.drawLine(x, 64 * 2, x, getHeight() - 64);
+        for (int i = 0; i <= NUMBER_HORIZONTAL; i++) {
+            int x = 864 + i * GRID_SIZE;
+            g.drawLine(x, 64 * 2, x, 768);
         }
 
-        for (int i = 0; i < number_vertical; i++) {
+        for (int i = 0; i <= NUMBER_VERTICAL; i++) {
             g.drawLine(32, 64 * 2 + 64 * i, 672, 64 * 2 + 64 * i);
         }
 
-        for (int i = 0; i < number_vertical; i++) {
+        for (int i = 0; i <= NUMBER_VERTICAL; i++) {
             g.drawLine(864, 64 * 2 + 64 * i, 1504, 64 * 2 + 64 * i);
         }
-
-
     }
+    public void initializeComputerCrosses() {
+        Random random = new Random();
+        Set<String> usedPositions = new HashSet<>();
 
+        for (int i = 0; i < 5; i++) {
+            int row, column;
+            String position;
 
+            do {
+                row = random.nextInt(9);
+                column = random.nextInt(9);
+                position = row + "," + column;
+            } while (usedPositions.contains(position));
 
+            usedPositions.add(position);
 
-
-    @Override
-    public void keyPressed(KeyEvent e) {
-        int keyCode = e.getKeyCode();
-
-        switch (keyCode) {
-            case KeyEvent.VK_W:
-                if (currentY > 0) {
-                    currentY--;
-                    repaint();
-                }
-                break;
-            case KeyEvent.VK_S:
-                if (currentY <= number_vertical - 2) {
-                    currentY++;
-                    repaint();
-                }
-                break;
-            case KeyEvent.VK_A:
-                if (currentX > 0) {
-                    currentX--;
-                    repaint();
-                }
-                break;
-            case KeyEvent.VK_D:
-                if (currentX < number_horizontal - 1) {
-                    currentX++;
-                    repaint();
-                }
-                break;
-            case KeyEvent.VK_ENTER:
-                performEnterAction();
-                break;
+            if (Computer.positions[row][column] == 0) {
+                Computer.positions[row][column] = 1;
+            }
         }
     }
 
-    private void performEnterAction() {
-
+    public  void performEnterAction() {
         if (enterCount < MAX_ENTER_COUNT) {
-            redLines.add(startX + currentX * gridsize + "," + (64 * 2 + currentY * gridsize));
+            redLines.add(START_X + currentX * GRID_SIZE + "," + (64 * 2 + currentY * GRID_SIZE));
             repaint();
-
-             int currentGridX = 0;
-             int currentGridY = 0;
-            currentGridX = startX + currentX * gridsize;
-            currentGridY = 64 * 2 + currentY * gridsize;
-            System.out.println("The" +enterCount +" time " );
-
-            System.out.println(" x is : " + currentGridX);
-            System.out.println(" y is : "+currentGridY);
+            int currentGridX = 0;
+            int currentGridY = 0;
+            currentGridX = START_X + currentX * GRID_SIZE;
+            currentGridY = 64 * 2 + currentY * GRID_SIZE;
             int row=(currentGridY-128)/64;
             int column=(currentGridX-32)/64;
-            System.out.println("Row is  :" + row);
-            System.out.println("Column is :" +column);
-            if(Player_Positions[row][column]== " 0 ") {
-                Player_Positions[row][column] = " 1 ";
+            if(Player.positions[row][column]==  0 ) {
+                Player.positions[row][column] =  1 ;
                 enterCount++;
+                Player.ships++;
             }else{
                 JOptionPane.showMessageDialog(this, "You have put this location already");
-
             }
         } else {
-            JOptionPane.showMessageDialog(this, "You have reached the maximum limit of entries (5).");
+            JOptionPane.showMessageDialog(this, "You have reached the maximum ships let enter 1 to start the battle ");
+        }
+    }
+
+    public void drawBattle_Effect(Graphics g){
+        g.setColor(Color.YELLOW);
+        for (String position : Battle.Oval_player) {
+            String[] parts = position.split(",");
+            int x = Integer.parseInt(parts[0]);
+            int y = Integer.parseInt(parts[1]);
+            g.fillOval(x,y,64,64);
         }
 
+
+    }
+    public void draw_Computer(Graphics g){
+        g.setColor(Color.MAGENTA);
+        for (String position : Battle.Oval_Computer) {
+            String[] parts = position.split(",");
+            int x = Integer.parseInt(parts[0]);
+            int y = Integer.parseInt(parts[1]);
+            g.fillOval(x,y,64,64);
+        }
+    }
+    public void startGame() {
+        if (Player.ships < 5) {
+            JOptionPane.showMessageDialog(null, "You need to have 5 ships for the battle");
+        } else {
+            battle.fight();
+        }
     }
 
 
-
-    @Override
-    public void keyTyped(KeyEvent e) {
-    }
-
-    @Override
-    public void keyReleased(KeyEvent e) {
-    }
-    public static void main(String[] args) {
-        JFrame frame = new JFrame("Match");
-        BoardGame gridPanel = new BoardGame();
-
-        frame.add(gridPanel);
-        frame.setSize(1600, 900);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setVisible(true);
-        frame.addKeyListener( gridPanel);  // Make sure the panel receives key events
-    }
 
 }
+
