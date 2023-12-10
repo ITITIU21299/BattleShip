@@ -5,6 +5,7 @@ import Inputs.MyKeyListener;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
@@ -27,6 +28,8 @@ public class BoardGame extends JPanel  {
     private Computer computer;
     private boolean fillRectEnabled = true;
 
+    Ship ship;
+
     Battle battle;
 
     public BoardGame() {
@@ -36,6 +39,7 @@ public class BoardGame extends JPanel  {
         setFocusable(true);
         setFocusTraversalKeysEnabled(false);
         battle=new Battle(this);
+
     }
 
     @Override
@@ -47,6 +51,20 @@ public class BoardGame extends JPanel  {
         g.setFont(new Font("Arial", Font.BOLD, 20));
         g.drawString("Player Ships: " + player.ships, 100, 64+16);
         g.drawString("Computer Ships: " + computer.ships, 1100, 64+16);
+
+        g.setColor(Color.GREEN);
+        g.setFont(new Font("Arial", Font.BOLD, 20));
+        g.drawString("Hint: ", 700, 30);
+        g.drawString("Enter for setup game ", 700, 50);
+        g.drawString(" 1     to  start game ", 700, 70);
+        g.setColor(Color.YELLOW);
+        g.setFont(new Font("Arial", Font.BOLD, 10));
+        g.drawString("Type 1 is  Submarine: ", 700, 90);
+        g.drawString("Type 2 is  Destroyer ", 700, 110);
+        g.drawString("Type 3 is  BattleShip ", 700, 130);
+        g.drawString("Type 4 is  Carrier ", 700, 150);
+        g.drawString("Type 5 is  Cruiser", 700, 170);
+
         drawRedLines(g);
         draw_Submarine(g);
         draw_Battleship(g);
@@ -127,7 +145,6 @@ public class BoardGame extends JPanel  {
 
 
     public void drawBattle_Effect(Graphics g){
-
         for (String position : battle.Oval_player) {
             String[] parts = position.split(",");
             int x = Integer.parseInt(parts[0]);
@@ -138,7 +155,7 @@ public class BoardGame extends JPanel  {
 
             g.fillOval(x,y,64,64);
             if (computer.positions[row][column] !=0) {
-                g.setColor(Color.PINK);
+                g.setColor(Color.RED);
             } else {
                 g.setColor(Color.YELLOW);
             }
@@ -158,7 +175,7 @@ public class BoardGame extends JPanel  {
             Color originalColor = g.getColor(); // Store the original color
 
             if (player.positions[row][column] !=0) {
-                g.setColor(Color.GREEN);
+                g.setColor(Color.RED);
             } else {
                 g.setColor(Color.MAGENTA);
             }
@@ -218,14 +235,14 @@ public class BoardGame extends JPanel  {
     public void setUp() {
         if(player.ships<5) {
         JOptionPane.showMessageDialog(this, "Let's start by setting up the game ");
+            ArrayList<Integer>checkType=new ArrayList<>();
 
     for (int i = 1; i < 6; i++) {
         JOptionPane.showMessageDialog(this, "Let's set up the " + i + " ship");
-
+boolean check=false;
         int row;
         int column;
         int type;
-
         while (true) {
             try {
                 String input_y = JOptionPane.showInputDialog("Enter row axis:");
@@ -238,50 +255,59 @@ public class BoardGame extends JPanel  {
                     JOptionPane.showMessageDialog(this, "Input canceled. Exiting the game.");
                     System.exit(0);
                 }
-
                 String input_type = JOptionPane.showInputDialog("Enter Type:");
                 if (input_type == null) {
                     JOptionPane.showMessageDialog(this, "Input canceled. Exiting the game.");
                     System.exit(0);
                 }
-                // Check if the user canceled the input
-
-
                 row = Integer.parseInt(input_y);
                 column = Integer.parseInt(input_x);
                 type = Integer.parseInt(input_type);
-
+                for(int t:checkType){
+                    if(t==type){
+                        JOptionPane.showMessageDialog(this, "You already have this ship's type");
+                        check=true;
+                    }
+                }
+                if(check){
+                    continue;
+                }
                 // Validate input values
                 if (isValidInput(row, column, type)) {
                     break;  // Exit the loop if input is valid
                 } else {
                     JOptionPane.showMessageDialog(this, "Invalid input. Please re-enter.");
                 }
-
             } catch (NumberFormatException e) {
                 JOptionPane.showMessageDialog(this, "Invalid input format. Please enter numeric values.");
             }
         }
+        checkType.add(type);
 
         switch (type) {
             case 1:
-                player.SubMarine(row, column);
+                ship=new SubMarine();
+                ship.make_ship_player(row, column);
                 repaint();
                 break;
             case 2:
-                player.Destroyer(row, column);
+                ship=new Destroyer();
+                ship.make_ship_player(row, column);
                 repaint();
                 break;
             case 3:
-                player.BattleShip(row, column);
+                ship=new BattleShip();
+                ship.make_ship_player(row, column);
                 repaint();
                 break;
             case 4:
-                player.Carrier(row, column);
+                ship=new Carrier();
+                ship.make_ship_player(row, column);
                 repaint();
                 break;
             case 5:
-                player.Cruiser(row, column);
+                ship=new Cruiser();
+                ship.make_ship_player(row, column);
                 repaint();
                 break;
             default:
@@ -311,16 +337,6 @@ public class BoardGame extends JPanel  {
 
 
 
-    public static void main(String[] args) {
-        JFrame newFrame = new JFrame("Match");
-        BoardGame boardGame = new BoardGame();
-        MyKeyListener myKeyListener = new MyKeyListener(boardGame);
-
-        newFrame.add(boardGame);
-        newFrame.setSize(1600, 900);
-        newFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // Close the entire application on new frame close
-        newFrame.setVisible(true);
-    }
 
 
 }
