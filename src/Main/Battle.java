@@ -10,14 +10,18 @@ import java.util.Set;
 public class Battle {
     public BoardGame boardGame;
     public MyKeyListener myKeyListener;
-    public static int[][] player_fire;
+    public  int[][] player_fire;
 
-    public static Set<String> Oval_player = new HashSet<>();
-    public static Set<String> Oval_Computer = new HashSet<>();
+    public  Set<String> Oval_player = new HashSet<>();
+    public  Set<String> Oval_Computer = new HashSet<>();
+    Computer computer;
+    Player player;
     public Battle(BoardGame boardGame){
         this.boardGame=boardGame;
         player_fire=new int[1000][1000];
         myKeyListener=new MyKeyListener(boardGame);
+        player=new Player();
+        computer=new Computer();
     }
     public void Player_turn() {
         int row;
@@ -64,10 +68,10 @@ public class Battle {
         Oval_player.add(x + "," + y);
         boardGame.repaint();
 
-        if (Computer.positions[row][column] == 1) {
+        if (computer.positions[row][column] == 1) {
             JOptionPane.showMessageDialog(null, "Your fire is good");
-            Computer.ships--;
-            Computer.positions[row][column] = 0;
+
+            computer.positions[row][column] = 2;
             boardGame.repaint();
         } else {
             JOptionPane.showMessageDialog(null, "Your fire is not good");
@@ -78,31 +82,30 @@ public class Battle {
         Random random=new Random();
         int row = random.nextInt(9);
         int column = random.nextInt(9);
-
         for(int i=0;i<10;i++){
             for(int j=0;j<10;j++){
-                if(Player.positions[i][j]==1){
+                if(player.positions[i][j]==1){
                     row=i;
                     column=j;
                 }
             }
             System.out.println();
         }
-
         int x =column*64+32;
         int y=64*row+128;
         Oval_Computer.add(x + "," + y);
         boardGame.repaint();
-        if(Player.positions[row][column]==  1 ){
-            JOptionPane.showMessageDialog(null, "Your ship is sunk");
-            Player.ships--;
-            Player.positions[row][column]=  0 ;
+        if(player.positions[row][column]==  1 ){
+            JOptionPane.showMessageDialog(null, "Your ship is attacked");
+            player.positions[row][column]=  2 ;
             boardGame.repaint();
         }else{
             JOptionPane.showMessageDialog(null, "Opponent's fire is not good");
         }
     }
     public void fight(){
+        System.out.println("The player ship "+ player.ships);
+        System.out.println("The computer ship "+ computer.ships);
         int n=0;
         while(Computer.ships>0&&Player.ships>0){
             n++;
@@ -111,11 +114,10 @@ public class Battle {
             Player_turn();
             Computer_turn();
         }
-        if(Computer.ships>Player.ships){
+        if(computer.ships>player.ships){
             JOptionPane.showMessageDialog(null, "You lose ");
             System.exit(0);
         }else{
-
             JOptionPane.showMessageDialog(null, "Your win");
             System.exit(0);
         }

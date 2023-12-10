@@ -46,7 +46,7 @@ public class GamePanel extends JPanel {
 
     private void initializeImages() {
         try {
-            mainMenuImage = ImageIO.read(new File("src/Resources/MainMenu.jpg"));
+            mainMenuImage = ImageIO.read(new File("src/Resources/Play.jpg"));
             specialAreaImage = ImageIO.read(new File("src/Resources/Play.jpg"));
             ExitImage=ImageIO.read(new File("src/Resources/Exit.jpg"));
 
